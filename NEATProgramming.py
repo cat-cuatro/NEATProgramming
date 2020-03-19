@@ -10,7 +10,7 @@ import visual
 path = "data/"
 
 
-def main(genomes, config):
+def eval_genomes(genomes, config):
     nets = [] # the network for that environment
     envs = [] # environment for it
     ge = [] # genomes
@@ -29,7 +29,7 @@ def main(genomes, config):
         isDone.append(False)
         i += 1
 
-
+    # Timestep == 0.02s
     for steps in range(0, 200): # up to 200 steps
         # take 1 step in every cartpole environment (there are len(envs) of them)
         for x in range(0, len(envs)):
@@ -54,11 +54,14 @@ def run(config_path):
         stats = neat.StatisticsReporter()
         p.add_reporter(stats)
 
-        winner = p.run(main,50)
+        pe = neat.ParallelEvaluator(4, eval_genomes)
+        winner = p.run(eval_genomes)
+        # winner = p.run(50, eval_genomes)
         print('\nBest genome:\n{!s}'.format(winner))
 
         # Plot
         visual.plot(stats, 'CartPole-v0', view=True)
+        visual.species(stats, 'CartPole-v0-generations', view=True)
 
         # Save winner
         with open(path + 'CartPoleWinner', 'wb') as f:
