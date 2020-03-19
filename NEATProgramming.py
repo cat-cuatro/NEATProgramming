@@ -1,8 +1,14 @@
-import matplotlib.pyplot as plot
-import numpy as np
-import gym
-import neat
 import os
+import gym
+import pickle
+import neat
+import numpy as np
+import matplotlib.pyplot as plot
+
+import visual
+
+path = "data/"
+
 
 def main(genomes, config):
     nets = [] # the network for that environment
@@ -25,16 +31,19 @@ def main(genomes, config):
 
 
     for steps in range(0, 200): # up to 200 steps
-        for x in range(0, len(envs)): # take 1 step in every cartpole environment (there are len(envs) of them)
+        # take 1 step in every cartpole environment (there are len(envs) of them)
+        for x in range(0, len(envs)):
            if(isDone[x] == False):
                 action = nets[x].activate(observations[x])
                 if(action[0] > 0.5):
                     action = 1
                 else:
                     action = 0
-                observations[x], a_reward, isDone[x], info = envs[x].step(action) # perform an action based on our observation, and update our observation
+                # perform an action based on our observation, and update our observation
+                observations[x], a_reward, isDone[x], info = envs[x].step(action)
                 ge[x].fitness += a_reward  # update the reward
-                # if we're done, we need to stop using that agent, isDone tells us if that agent has failed the CartPole
+                # if we're done, we need to stop using that agent,
+                # isDone tells us if that agent has failed the CartPole
         if(len(envs) == 0): # if all agents are done, I should stop early.
             break
 
@@ -47,6 +56,13 @@ def run(config_path):
 
         winner = p.run(main,50)
         print('\nBest genome:\n{!s}'.format(winner))
+
+        # Plot
+        visual.plot(stats, 'CartPole-v0', view=True)
+
+        # Save winner
+        with open(path + 'CartPoleWinner', 'wb') as f:
+            pickle.dump(winner, f)
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
