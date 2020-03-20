@@ -8,14 +8,14 @@ import matplotlib.pyplot as plot
 
 import visual
 
-<<<<<<< HEAD
+path = "data/"
 
-#MAX_FITNESS = 200
-MAX_STEPS = 200
-MAX_GENERATIONS = 1000
+MAX_STEPS = 500
+MAX_GENERATIONS = 400
+WINNER_LIST = []
 #GAME_TO_TEST = 'CartPole-v0'
 GAME_TO_TEST = 'MountainCar-v0'
-path = "data/" + GAME_TO_TEST + "/"
+#GAME_TO_TEST = 'CarRacing-v0'
 
 
 def debugFunction():
@@ -29,12 +29,6 @@ def debugFunction():
     for steps in range(0,1000):
         env.render()
         observation, reward, done, info = env.step(2)
-=======
-path = "data/"
-MAX_FITNESS = 1000
-MAX_STEPS = 1000
-MAX_GENERATIONS = 150
->>>>>>> parent of f9b575b... Add MountainCar code
 
 def selectAction(net_output, game):
     if(game == 'CartPole-v0'):
@@ -47,14 +41,9 @@ def selectAction(net_output, game):
 
 def playAgent(winner, config, game):
     print(winner.fitness)
-<<<<<<< HEAD
-    # env_to_wrap = gym.make(game).env
-    # env = wrappers.Monitor(env_to_wrap, path, force=True)
-    env = gym.make(game).env
-=======
-    env_to_wrap = gym.make(game).env
-    env = wrappers.Monitor(env_to_wrap, "data/", force=True)
->>>>>>> parent of f9b575b... Add MountainCar code
+    env_to_wrap = gym.make(game)
+    env = wrappers.Monitor(env_to_wrap, "data/", force=True, video_callable=lambda episode_id: True)
+#    env = gym.make(game).env
     observation = env.reset()
     net = neat.nn.FeedForwardNetwork.create(winner, config)
     a_reward = 0
@@ -70,6 +59,23 @@ def playAgent(winner, config, game):
             break
     env.close()
 
+def playAllAgents(winnerList, config, game):
+    env_to_wrap = gym.make(game)
+    env = wrappers.Monitor(env_to_wrap, "data/MountainCar/", force=True, video_callable=lambda episode_id: True)
+    sum= 0
+    for agent in winnerList:
+        observation = env.reset()
+        net = neat.nn.FeedForwardNetwork.create(agent, config)
+        for steps in range(0, MAX_STEPS):
+            env.render()
+            action = selectAction(net.activate(observation), game)
+            observation, a_reward, done, info = env.step(action)
+            sum += a_reward
+            if done:
+                print("Broke at step: ", steps)
+                break
+    env.close()
+
 def eval_genomes(genomes, config):
     nets = [] # the network for that environment
     envs = [] # environment for it
@@ -78,6 +84,8 @@ def eval_genomes(genomes, config):
     observations = []
     i = 0
     a_reward = 0
+    game = GAME_TO_TEST
+    bestFitness = 0
 
     for _, g in genomes:
         net = neat.nn.FeedForwardNetwork.create(g, config)
@@ -102,70 +110,40 @@ def eval_genomes(genomes, config):
                 # perform an action based on our observation, and update our observation
                 observations[x], a_reward, isDone[x], info = envs[x].step(action)
                 ge[x].fitness += a_reward  # update the reward
+                if(bestFitness < ge[x].fitness):
+                    bestFitness = ge[x].fitness
+                    i = x
                 # if we're done, we need to stop using that agent,
                 # isDone tells us if that agent has failed the CartPole
         if(len(envs) == 0): # if all agents are done, I should stop early.
             break
+    WINNER_LIST.append(ge[x])
+#    playAgent(ge[x], config, game)
+
 
 def run(config_path):
-<<<<<<< HEAD
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    pe = neat.ParallelEvaluator(4, eval_genomes)
+    pe = neat.ParallelEvaluator(10, eval_genomes)
     winner = p.run(eval_genomes, MAX_GENERATIONS)  ## uncomment when not debugging
+    WINNER_LIST.append(winner)
 
 #    debugFunction() ## for sampling the observation and action space of an OpenAI Game
 
     print('\nBest genome:\n{!s}'.format(winner))
 
-    # Plot
-    visual.plot(stats, GAME_TO_TEST, path, view=True)
-    visual.species(stats, GAME_TO_TEST + '-generations', path, view=True)
-    node_names = {-1: 'x', -2: 'dx', -3: 'theta', -4: 'dtheta', 0: 'control'}
-    visual.draw_net(config, winner, "CartPole-v0-nodes", path, view=True, 
-                    node_names=node_names,
-                    show_disabled=True, prune_unused=False)
-    visual.draw_net(config, winner, "CartPole-v0-nodes-disable", path, view=True, 
-                    node_names=node_names,
-                    show_disabled=False, prune_unused=False)
-    visual.draw_net(config, winner, "CartPole-v0-nodes-pruned", path, view=True, 
-                    node_names=node_names,
-                    show_disabled=True, prune_unused=False)
-    visual.draw_net(config, winner, "CartPole-v0-nodes-disable-pruned", path, view=True, 
-                    node_names=node_names,
-                    show_disabled=False, prune_unused=True)
-
     # Save winner
     with open(path + GAME_TO_TEST + '-Winner', 'wb') as f:
         pickle.dump(winner, f)
 
-    playAgent(winner, config, GAME_TO_TEST)
-=======
-        config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
-        p = neat.Population(config)
-        p.add_reporter(neat.StdOutReporter(True))
-        stats = neat.StatisticsReporter()
-        p.add_reporter(stats)
+#    playAgent(winner, config, GAME_TO_TEST)
+    print(len(WINNER_LIST))
+    playAllAgents(WINNER_LIST, config, GAME_TO_TEST)
 
-        pe = neat.ParallelEvaluator(4, eval_genomes)
-        winner = p.run(eval_genomes, MAX_GENERATIONS)
-        # winner = p.run(50, eval_genomes)
-        print('\nBest genome:\n{!s}'.format(winner))
-
-        # Plot
-        visual.plot(stats, 'CartPole-v0', view=True)
-        visual.species(stats, 'CartPole-v0-generations', view=True)
-
-        # Save winner
-        with open(path + 'CartPoleWinner', 'wb') as f:
-            pickle.dump(winner, f)
-
-        playAgent(winner, config, 'CartPole-v0')
->>>>>>> parent of f9b575b... Add MountainCar code
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
