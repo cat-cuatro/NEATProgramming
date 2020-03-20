@@ -10,11 +10,11 @@ import visual
 
 path = "data/"
 
-MAX_STEPS = 500
-MAX_GENERATIONS = 400
+MAX_STEPS = 800
+MAX_GENERATIONS = 500
 WINNER_LIST = []
-#GAME_TO_TEST = 'CartPole-v0'
-GAME_TO_TEST = 'MountainCar-v0'
+GAME_TO_TEST = 'CartPole-v0'
+#GAME_TO_TEST = 'MountainCar-v0'
 #GAME_TO_TEST = 'CarRacing-v0'
 
 
@@ -48,9 +48,8 @@ def selectAction(net_output, game):
 
 def playAgent(winner, config, game):
     print(winner.fitness)
-    env_to_wrap = gym.make(game)
+    env_to_wrap = gym.make(game).env
     env = wrappers.Monitor(env_to_wrap, "data/", force=True, video_callable=lambda episode_id: True)
-#    env = gym.make(game).env
     observation = env.reset()
     net = neat.nn.FeedForwardNetwork.create(winner, config)
     a_reward = 0
@@ -64,10 +63,10 @@ def playAgent(winner, config, game):
         if done: # terminate if agent is failed/done
             print("Broke at step: ", steps)
             break
-    env.close()
+        env.close()
 
 def playAllAgents(winnerList, config, game):
-    env_to_wrap = gym.make(game)
+    env_to_wrap = gym.make(game).env
     env = wrappers.Monitor(env_to_wrap, "data/MountainCar/", force=True, video_callable=lambda episode_id: True)
     sum= 0
     for agent in winnerList:
@@ -81,7 +80,7 @@ def playAllAgents(winnerList, config, game):
             if done:
                 print("Broke at step: ", steps)
                 break
-    env.close()
+        env.close()
 
 def eval_genomes(genomes, config):
     nets = [] # the network for that environment
@@ -125,7 +124,6 @@ def eval_genomes(genomes, config):
         if(len(envs) == 0): # if all agents are done, I should stop early.
             break
     WINNER_LIST.append(ge[x])
-#    playAgent(ge[x], config, game)
 
 
 def run(config_path):
@@ -147,9 +145,9 @@ def run(config_path):
     with open(path + GAME_TO_TEST + '-Winner', 'wb') as f:
         pickle.dump(winner, f)
 
-#    playAgent(winner, config, GAME_TO_TEST)
+#    playAgent(winner, config, GAME_TO_TEST) # Play the best fitness agent
     print(len(WINNER_LIST))
-    playAllAgents(WINNER_LIST, config, GAME_TO_TEST)
+    playAllAgents(WINNER_LIST, config, GAME_TO_TEST) # Play the best fitness agent from each iteration
 
 
 if __name__ == "__main__":
