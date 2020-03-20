@@ -17,6 +17,7 @@ WINNER_LIST = []
 GAME_TO_TEST = 'MountainCar-v0'
 #GAME_TO_TEST = 'CarRacing-v0'
 
+
 def debugFunction():
     env = gym.make(GAME_TO_TEST)
     observation = env.reset()
@@ -35,13 +36,7 @@ def selectAction(net_output, game):
             action = 1
         else:
             action = 0
-    elif(game == 'MountainCar-v0'):
-        if(net_output[0] >= (2.0/3.0)):
-            action = 2
-        elif(net_output[0] >= (1.0/3.0) and net_output[0] < (2.0/3.0)):
-            action = 1
-        else:
-            action = 0
+
     return action
 
 def playAgent(winner, config, game):
@@ -81,7 +76,6 @@ def playAllAgents(winnerList, config, game):
                 break
     env.close()
 
-
 def eval_genomes(genomes, config):
     nets = [] # the network for that environment
     envs = [] # environment for it
@@ -96,19 +90,23 @@ def eval_genomes(genomes, config):
     for _, g in genomes:
         net = neat.nn.FeedForwardNetwork.create(g, config)
         nets.append(net)                     # each env has its own net
-        envs.append(gym.make(game).env) # create our game environment
+        envs.append(gym.make('CartPole-v0').env) # create our game environment
         g.fitness = 0
         ge.append(g)                         # and its own genome
         observations.append(envs[i].reset()) # keep track of this observation
         isDone.append(False)
         i += 1
 
+    # Timestep == 0.02s
     for steps in range(0, MAX_STEPS): # up to MAX_STEPS steps
         # take 1 step in every cartpole environment (there are len(envs) of them)
         for x in range(0, len(envs)):
            if(isDone[x] == False):
                 action = nets[x].activate(observations[x])
-                action = selectAction(nets[x].activate(observations[x]), game)
+                if(action[0] > 0.5):
+                    action = 1
+                else:
+                    action = 0
                 # perform an action based on our observation, and update our observation
                 observations[x], a_reward, isDone[x], info = envs[x].step(action)
                 ge[x].fitness += a_reward  # update the reward
@@ -129,7 +127,6 @@ def run(config_path):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    
 
     pe = neat.ParallelEvaluator(10, eval_genomes)
     winner = p.run(eval_genomes, MAX_GENERATIONS)  ## uncomment when not debugging
@@ -139,17 +136,14 @@ def run(config_path):
 
     print('\nBest genome:\n{!s}'.format(winner))
 
-    # Plot
-    visual.plot(stats, GAME_TO_TEST, view=True)
-    visual.species(stats, GAME_TO_TEST+'-generations', view=True)
-
     # Save winner
-    with open(path + GAME_TO_TEST+'Winner', 'wb') as f:
+    with open(path + GAME_TO_TEST + '-Winner', 'wb') as f:
         pickle.dump(winner, f)
 
 #    playAgent(winner, config, GAME_TO_TEST)
     print(len(WINNER_LIST))
     playAllAgents(WINNER_LIST, config, GAME_TO_TEST)
+
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
