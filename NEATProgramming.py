@@ -1,5 +1,6 @@
 import os
 import gym
+from gym import wrappers
 import pickle
 import neat
 import numpy as np
@@ -23,7 +24,8 @@ def selectAction(net_output, game):
 
 def playAgent(winner, config, game):
     print(winner.fitness)
-    env = gym.make(game).env
+    env_to_wrap = gym.make(game).env
+    env = wrappers.Monitor(env_to_wrap, "data/", force=True)
     observation = env.reset()
     net = neat.nn.FeedForwardNetwork.create(winner, config)
     a_reward = 0
