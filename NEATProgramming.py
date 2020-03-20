@@ -8,6 +8,7 @@ import matplotlib.pyplot as plot
 
 import visual
 
+<<<<<<< HEAD
 
 #MAX_FITNESS = 200
 MAX_STEPS = 200
@@ -28,6 +29,12 @@ def debugFunction():
     for steps in range(0,1000):
         env.render()
         observation, reward, done, info = env.step(2)
+=======
+path = "data/"
+MAX_FITNESS = 1000
+MAX_STEPS = 1000
+MAX_GENERATIONS = 150
+>>>>>>> parent of f9b575b... Add MountainCar code
 
 def selectAction(net_output, game):
     if(game == 'CartPole-v0'):
@@ -35,20 +42,19 @@ def selectAction(net_output, game):
             action = 1
         else:
             action = 0
-    elif(game == 'MountainCar-v0'):
-        if(net_output[0] >= (2.0/3.0)):
-            action = 2
-        elif(net_output[0] >= (1.0/3.0) and net_output[0] < (2.0/3.0)):
-            action = 1
-        else:
-            action = 0
+
     return action
 
 def playAgent(winner, config, game):
     print(winner.fitness)
+<<<<<<< HEAD
     # env_to_wrap = gym.make(game).env
     # env = wrappers.Monitor(env_to_wrap, path, force=True)
     env = gym.make(game).env
+=======
+    env_to_wrap = gym.make(game).env
+    env = wrappers.Monitor(env_to_wrap, "data/", force=True)
+>>>>>>> parent of f9b575b... Add MountainCar code
     observation = env.reset()
     net = neat.nn.FeedForwardNetwork.create(winner, config)
     a_reward = 0
@@ -72,12 +78,11 @@ def eval_genomes(genomes, config):
     observations = []
     i = 0
     a_reward = 0
-    game = GAME_TO_TEST
 
     for _, g in genomes:
         net = neat.nn.FeedForwardNetwork.create(g, config)
         nets.append(net)                     # each env has its own net
-        envs.append(gym.make(game).env) # create our game environment
+        envs.append(gym.make('CartPole-v0').env) # create our game environment
         g.fitness = 0
         ge.append(g)                         # and its own genome
         observations.append(envs[i].reset()) # keep track of this observation
@@ -90,7 +95,10 @@ def eval_genomes(genomes, config):
         for x in range(0, len(envs)):
            if(isDone[x] == False):
                 action = nets[x].activate(observations[x])
-                action = selectAction(nets[x].activate(observations[x]), game)
+                if(action[0] > 0.5):
+                    action = 1
+                else:
+                    action = 0
                 # perform an action based on our observation, and update our observation
                 observations[x], a_reward, isDone[x], info = envs[x].step(action)
                 ge[x].fitness += a_reward  # update the reward
@@ -100,6 +108,7 @@ def eval_genomes(genomes, config):
             break
 
 def run(config_path):
+<<<<<<< HEAD
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
@@ -135,6 +144,28 @@ def run(config_path):
         pickle.dump(winner, f)
 
     playAgent(winner, config, GAME_TO_TEST)
+=======
+        config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+        p = neat.Population(config)
+        p.add_reporter(neat.StdOutReporter(True))
+        stats = neat.StatisticsReporter()
+        p.add_reporter(stats)
+
+        pe = neat.ParallelEvaluator(4, eval_genomes)
+        winner = p.run(eval_genomes, MAX_GENERATIONS)
+        # winner = p.run(50, eval_genomes)
+        print('\nBest genome:\n{!s}'.format(winner))
+
+        # Plot
+        visual.plot(stats, 'CartPole-v0', view=True)
+        visual.species(stats, 'CartPole-v0-generations', view=True)
+
+        # Save winner
+        with open(path + 'CartPoleWinner', 'wb') as f:
+            pickle.dump(winner, f)
+
+        playAgent(winner, config, 'CartPole-v0')
+>>>>>>> parent of f9b575b... Add MountainCar code
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
