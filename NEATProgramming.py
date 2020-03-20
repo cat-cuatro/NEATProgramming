@@ -61,6 +61,7 @@ def eval_genomes(genomes, config):
         isDone.append(False)
         i += 1
 
+    # Timestep == 0.02s
     for steps in range(0, MAX_STEPS): # up to MAX_STEPS steps
         # take 1 step in every cartpole environment (there are len(envs) of them)
         for x in range(0, len(envs)):
@@ -93,6 +94,19 @@ def run(config_path):
         # Plot
         visual.plot(stats, 'CartPole-v0', view=True)
         visual.species(stats, 'CartPole-v0-generations', view=True)
+        node_names = {-1: 'x', -2: 'dx', -3: 'theta', -4: 'dtheta', 0: 'control'}
+        visual.draw_net(config, winner, "CartPole-v0-nodes", view=True, 
+                        node_names=node_names,
+                        show_disabled=True, prune_unused=False)
+        visual.draw_net(config, winner, "CartPole-v0-nodes-disable", view=True, 
+                        node_names=node_names,
+                        show_disabled=False, prune_unused=False)
+        visual.draw_net(config, winner, "CartPole-v0-nodes-pruned", view=True, 
+                        node_names=node_names,
+                        show_disabled=True, prune_unused=False)
+        visual.draw_net(config, winner, "CartPole-v0-nodes-disable-pruned", view=True, 
+                        node_names=node_names,
+                        show_disabled=False, prune_unused=True)
 
         # Save winner
         with open(path + 'CartPoleWinner', 'wb') as f:
