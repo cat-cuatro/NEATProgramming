@@ -10,8 +10,8 @@ import visual
 
 path = "data/"
 #MAX_FITNESS = 200
-MAX_STEPS = 200
-MAX_GENERATIONS = 1000
+MAX_STEPS = 400
+MAX_GENERATIONS = 50
 #GAME_TO_TEST = 'CartPole-v0'
 GAME_TO_TEST = 'MountainCar-v0'
 
@@ -104,7 +104,7 @@ def run(config_path):
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    pe = neat.ParallelEvaluator(4, eval_genomes)
+    pe = neat.ParallelEvaluator(10, eval_genomes)
     winner = p.run(eval_genomes, MAX_GENERATIONS)  ## uncomment when not debugging
 
 #    debugFunction() ## for sampling the observation and action space of an OpenAI Game
