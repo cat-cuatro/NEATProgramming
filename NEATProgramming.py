@@ -1,4 +1,5 @@
 import os
+import sys
 import gym
 from gym import wrappers
 import pickle
@@ -10,10 +11,11 @@ import visual
 
 
 #MAX_FITNESS = 200
-MAX_STEPS = 200
+MAX_STEPS = 1000
 MAX_GENERATIONS = 1000
-#GAME_TO_TEST = 'CartPole-v0'
-GAME_TO_TEST = 'MountainCar-v0'
+GAME_TO_TEST = 'CartPole-v0'    # 0.02s step updates
+#GAME_TO_TEST = 'MountainCar-v0'
+filename = GAME_TO_TEST
 path = "data/" + GAME_TO_TEST + "/"
 
 
@@ -46,9 +48,9 @@ def selectAction(net_output, game):
 
 def playAgent(winner, config, game):
     print(winner.fitness)
-    # env_to_wrap = gym.make(game).env
-    # env = wrappers.Monitor(env_to_wrap, path, force=True)
-    env = gym.make(game).env
+    # Save video of winner
+    env_to_wrap = gym.make(game).env
+    env = wrappers.Monitor(env_to_wrap, path, force=True)
     observation = env.reset()
     net = neat.nn.FeedForwardNetwork.create(winner, config)
     a_reward = 0
@@ -89,7 +91,6 @@ def eval_genomes(genomes, config):
         # take 1 step in every cartpole environment (there are len(envs) of them)
         for x in range(0, len(envs)):
            if(isDone[x] == False):
-                action = nets[x].activate(observations[x])
                 action = selectAction(nets[x].activate(observations[x]), game)
                 # perform an action based on our observation, and update our observation
                 observations[x], a_reward, isDone[x], info = envs[x].step(action)
@@ -107,26 +108,32 @@ def run(config_path):
     p.add_reporter(stats)
 
     pe = neat.ParallelEvaluator(4, eval_genomes)
-    winner = p.run(eval_genomes, MAX_GENERATIONS)  ## uncomment when not debugging
+    winner = p.run(eval_genomes)#, MAX_GENERATIONS)  ## uncomment when not debugging
 
 #    debugFunction() ## for sampling the observation and action space of an OpenAI Game
 
     print('\nBest genome:\n{!s}'.format(winner))
 
     # Plot
-    visual.plot(stats, GAME_TO_TEST, path, view=True)
-    visual.species(stats, GAME_TO_TEST + '-generations', path, view=True)
+    plot = None
+    try:
+        arg = sys.argv[2]
+        plot = arg
+    except:
+        plot = False
+    visual.plot(stats, GAME_TO_TEST, path, view=plot)
+    visual.species(stats, GAME_TO_TEST + '-generations', path, view=plot)
     node_names = {-1: 'x', -2: 'dx', -3: 'theta', -4: 'dtheta', 0: 'control'}
-    visual.draw_net(config, winner, "CartPole-v0-nodes", path, view=True, 
+    visual.draw_net(config, winner, GAME_TO_TEST + "-nodes", path, view=plot, 
                     node_names=node_names,
                     show_disabled=True, prune_unused=False)
-    visual.draw_net(config, winner, "CartPole-v0-nodes-disable", path, view=True, 
+    visual.draw_net(config, winner, GAME_TO_TEST + "-nodes-disable", path, view=False, 
                     node_names=node_names,
                     show_disabled=False, prune_unused=False)
-    visual.draw_net(config, winner, "CartPole-v0-nodes-pruned", path, view=True, 
+    visual.draw_net(config, winner, GAME_TO_TEST + "-nodes-pruned", path, view=False, 
                     node_names=node_names,
                     show_disabled=True, prune_unused=False)
-    visual.draw_net(config, winner, "CartPole-v0-nodes-disable-pruned", path, view=True, 
+    visual.draw_net(config, winner, GAME_TO_TEST + "-nodes-disable-pruned", path, view=False, 
                     node_names=node_names,
                     show_disabled=False, prune_unused=True)
 
@@ -138,5 +145,5 @@ def run(config_path):
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, "config-feedforward.txt")
+    config_path = os.path.join(local_dir, "config/config-nonspeciated")
     run(config_path)

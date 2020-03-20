@@ -28,22 +28,22 @@ compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 0.4
 
 # connection add/remove rates
-conn_add_prob           = 0.5
-conn_delete_prob        = 0.5
+conn_add_prob           = 0.0
+conn_delete_prob        = 0.0
 
 # connection enable options
 enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 feed_forward            = True
-initial_connection      = partial_direct 0.5
+initial_connection      = full_nodirect
 
 # node add/remove rates
-node_add_prob           = 0.2
-node_delete_prob        = 0.2
+node_add_prob           = 0.0
+node_delete_prob        = 0.0
 
 # network parameters
-num_hidden              = 1
+num_hidden              = 10
 # cartpole 4, mountain 2
 num_inputs              = 4
 num_outputs             = 1
