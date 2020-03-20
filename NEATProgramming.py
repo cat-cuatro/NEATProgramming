@@ -8,10 +8,14 @@ import matplotlib.pyplot as plot
 
 import visual
 
-path = "data/"
+
+filename = 'CartPole-v0'
+path = "data/" + filename + "/"
+
 MAX_FITNESS = 1000
 MAX_STEPS = 1000
 MAX_GENERATIONS = 150
+
 
 def selectAction(net_output, game):
     if(game == 'CartPole-v0'):
@@ -25,7 +29,7 @@ def selectAction(net_output, game):
 def playAgent(winner, config, game):
     print(winner.fitness)
     env_to_wrap = gym.make(game).env
-    env = wrappers.Monitor(env_to_wrap, "data/", force=True)
+    env = wrappers.Monitor(env_to_wrap, path, force=True)
     observation = env.reset()
     net = neat.nn.FeedForwardNetwork.create(winner, config)
     a_reward = 0
@@ -80,39 +84,38 @@ def eval_genomes(genomes, config):
             break
 
 def run(config_path):
-        config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
-        p = neat.Population(config)
-        p.add_reporter(neat.StdOutReporter(True))
-        stats = neat.StatisticsReporter()
-        p.add_reporter(stats)
+    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+    p = neat.Population(config)
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
 
-        pe = neat.ParallelEvaluator(4, eval_genomes)
-        winner = p.run(eval_genomes, MAX_GENERATIONS)
-        # winner = p.run(50, eval_genomes)
-        print('\nBest genome:\n{!s}'.format(winner))
+    pe = neat.ParallelEvaluator(4, eval_genomes)
+    winner = p.run(eval_genomes, MAX_GENERATIONS)
+    print('\nBest genome:\n{!s}'.format(winner))
 
-        # Plot
-        visual.plot(stats, 'CartPole-v0', view=True)
-        visual.species(stats, 'CartPole-v0-generations', view=True)
-        node_names = {-1: 'x', -2: 'dx', -3: 'theta', -4: 'dtheta', 0: 'control'}
-        visual.draw_net(config, winner, "CartPole-v0-nodes", view=True, 
-                        node_names=node_names,
-                        show_disabled=True, prune_unused=False)
-        visual.draw_net(config, winner, "CartPole-v0-nodes-disable", view=True, 
-                        node_names=node_names,
-                        show_disabled=False, prune_unused=False)
-        visual.draw_net(config, winner, "CartPole-v0-nodes-pruned", view=True, 
-                        node_names=node_names,
-                        show_disabled=True, prune_unused=False)
-        visual.draw_net(config, winner, "CartPole-v0-nodes-disable-pruned", view=True, 
-                        node_names=node_names,
-                        show_disabled=False, prune_unused=True)
+    # Plot
+    visual.plot(stats, filename, path, view=True)
+    visual.species(stats, filename + '-generations', path, view=True)
+    node_names = {-1: 'x', -2: 'dx', -3: 'theta', -4: 'dtheta', 0: 'control'}
+    visual.draw_net(config, winner, "CartPole-v0-nodes", path, view=True, 
+                    node_names=node_names,
+                    show_disabled=True, prune_unused=False)
+    visual.draw_net(config, winner, "CartPole-v0-nodes-disable", path, view=True, 
+                    node_names=node_names,
+                    show_disabled=False, prune_unused=False)
+    visual.draw_net(config, winner, "CartPole-v0-nodes-pruned", path, view=True, 
+                    node_names=node_names,
+                    show_disabled=True, prune_unused=False)
+    visual.draw_net(config, winner, "CartPole-v0-nodes-disable-pruned", path, view=True, 
+                    node_names=node_names,
+                    show_disabled=False, prune_unused=True)
 
-        # Save winner
-        with open(path + 'CartPoleWinner', 'wb') as f:
-            pickle.dump(winner, f)
+    # Save winner
+    with open(path + filename + '-winner', 'wb') as f:
+        pickle.dump(winner, f)
 
-        playAgent(winner, config, 'CartPole-v0')
+    playAgent(winner, config, 'CartPole-v0')
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)

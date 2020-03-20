@@ -1,20 +1,20 @@
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 # Sources:
-#   Some code borrowed from the visualize module by @CodeReclaimers, author
-#   of neat-python:
+#   Some code borrowed from the visualize module by @CodeReclaimers, author:
 #   https://github.com/CodeReclaimers/neat-python/blob/master/examples/xor/visualize.py
 #
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 
+import copy
+
 import graphviz
 import matplotlib.pyplot as plt
 import numpy as np
 
-path = "data/"
 
-def plot(stats, filename, view=False):
+def plot(stats, filename, path, view=False):
 
     gen = range(len(stats.most_fit_genomes))
     best_fit = [c.fitness for c in stats.most_fit_genomes]
@@ -36,7 +36,7 @@ def plot(stats, filename, view=False):
         plt.show()
     plt.close()
 
-def species(stats, filename, view=False):
+def species(stats, filename, path, view=False):
 
     species_sizes = stats.get_species_sizes()    
     num_gen = len(species_sizes)
@@ -53,7 +53,8 @@ def species(stats, filename, view=False):
         plt.show()
     plt.close()
 
-def draw_net(config, genome,  filename,view=False, node_names=None, show_disabled=True, prune_unused=False,
+def draw_net(config, genome, filename, path, view=False,
+             node_names=None, show_disabled=True, prune_unused=False,
              node_colors=None, fmt='svg'):
     """ Receives a genome and draws a neural network with arbitrary topology. """
     # Attributes for network nodes.
@@ -132,6 +133,6 @@ def draw_net(config, genome,  filename,view=False, node_names=None, show_disable
             width = str(0.1 + abs(cg.weight / 5.0))
             dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
 
-    dot.render(filename, view=view)
+    dot.render(filename, directory=path, view=view)
 
     return dot
