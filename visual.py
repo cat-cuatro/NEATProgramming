@@ -1,3 +1,13 @@
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#
+# Sources:
+#   Some code borrowed from the visualize module by @CodeReclaimers, author
+#   of neat-python:
+#   https://github.com/CodeReclaimers/neat-python/blob/master/examples/xor/visualize.py
+#
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
 import graphviz
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,13 +30,26 @@ def plot(stats, filename, view=False):
     plt.ylabel("Fitness")
     plt.grid()
     plt.legend(loc="upper left")
-    if view == True:
-        plt.show()
 
     plt.savefig(path + filename)
+    if view == True:
+        plt.show()
     plt.close()
 
-def species():
-    pass
+def species(stats, filename, view=False):
 
+    species_sizes = stats.get_species_sizes()    
+    num_gen = len(species_sizes)
+    curves = np.array(species_sizes).T
+
+    fig, ax = plt.subplots()
+    ax.stackplot(range(num_gen), *curves)
+
+    plt.ylabel("Size per species")
+    plt.xlabel("Generations")
+
+    plt.savefig(path + filename)
+    if view:
+        plt.show()
+    plt.close()
 
