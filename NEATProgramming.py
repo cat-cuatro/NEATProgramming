@@ -21,6 +21,25 @@ def selectAction(net_output, game):
 
     return action
 
+def playAgent(winner, config, game):
+    print(winner.fitness)
+    env = gym.make(game).env
+    observation = env.reset()
+    net = neat.nn.FeedForwardNetwork.create(winner, config)
+    a_reward = 0
+    sum = 0
+    done = False
+    for steps in range(0, MAX_STEPS):
+        env.render()                                           # Render must be in the loop
+        action = selectAction(net.activate(observation), game) # convert net output into an action acceptable by OpenAI's action API
+        observation, a_reward, done, info = env.step(action)   # standard API step call, returns 4 datums
+        sum += a_reward
+        if done: # terminate if agent is failed/done
+            print("Broke at step: ", steps)
+            break
+    env.close()
+
+
 def eval_genomes(genomes, config):
     nets = [] # the network for that environment
     envs = [] # environment for it
@@ -39,7 +58,6 @@ def eval_genomes(genomes, config):
         observations.append(envs[i].reset()) # keep track of this observation
         isDone.append(False)
         i += 1
-
 
     for steps in range(0, MAX_STEPS): # up to MAX_STEPS steps
         # take 1 step in every cartpole environment (there are len(envs) of them)
@@ -67,8 +85,8 @@ def run(config_path):
 
         pe = neat.ParallelEvaluator(4, eval_genomes)
         winner = p.run(eval_genomes, MAX_GENERATIONS)
+        # winner = p.run(50, eval_genomes)
         print('\nBest genome:\n{!s}'.format(winner))
-#        print(MAX_STEPS, MAX_FITNESS)
 
         # Plot
         visual.plot(stats, 'CartPole-v0', view=True)
