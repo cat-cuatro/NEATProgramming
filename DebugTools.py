@@ -11,3 +11,12 @@ class debug(object):
         for steps in range(0,1000):
             env.render()
             observation, reward, done, info = env.step(2)
+    def menu():
+        print("***** MENU *****")
+        print("1. Run NEAT")
+        print("2. Run QTable")
+
+    def envChoice():
+        print("***** Environment *****")
+        print("1. Cartpole")
+        print("2. Mountain Car")
