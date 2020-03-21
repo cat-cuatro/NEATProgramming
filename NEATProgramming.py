@@ -8,6 +8,8 @@ import matplotlib.pyplot as plot
 from actions import ActionSelector as act
 from DebugTools import debug as dt
 from testing import play as testAgent
+import DataLogger as dl
+import qmatrix as qm
 
 import visual
 
@@ -16,8 +18,8 @@ path = "data/"
 MAX_STEPS = 300
 MAX_GENERATIONS = 50
 WINNER_LIST = []
-GAME_TO_TEST = 'CartPole-v0'
-#GAME_TO_TEST = 'MountainCar-v0'
+GAME_TO_TEST1 = 'CartPole-v0'
+GAME_TO_TEST2 = 'MountainCar-v0'
 
 def eval_genomes(genomes, config):
     nets = [] # the network for that environment
@@ -60,28 +62,62 @@ def eval_genomes(genomes, config):
 
 
 def run(config_path):
-    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
-    p = neat.Population(config)
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
+    game = GAME_TO_TEST1
 
-    pe = neat.ParallelEvaluator(10, eval_genomes)
-    winner = p.run(eval_genomes, MAX_GENERATIONS)  ## uncomment when not debugging
-    WINNER_LIST.append(winner)
+    dt.envChoice()
+    choice = int(input("Which environment would you like?\n"))
+    if(choice == 1):
+        game = GAME_TO_TEST1
+    elif(choice == 2):
+        game = GAME_TO_TEST2
+    else:
+        print("Defaulted to Cartpole")
 
-#    dt.debugFunction() ## for sampling the observation and action space of an OpenAI Game
+    dt.menu()
+    choice = int(input("Please select an option from this menu.\n"))
+    if(choice == 1):
+        config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+        p = neat.Population(config)
+        p.add_reporter(neat.StdOutReporter(True))
+        stats = neat.StatisticsReporter()
+        p.add_reporter(stats)
 
-    print('\nBest genome:\n{!s}'.format(winner))
+        pe = neat.ParallelEvaluator(10, eval_genomes)
+        winner = p.run(eval_genomes, MAX_GENERATIONS)  ## uncomment when not debugging
+        WINNER_LIST.append(winner)
 
-    # Save winner
-    with open(path + GAME_TO_TEST + '-Winner', 'wb') as f:
-        pickle.dump(winner, f)
+    #    dt.debugFunction() ## for sampling the observation and action space of an OpenAI Game
 
-#    testAgent.playAgent(winner, config, GAME_TO_TEST, MAX_STEPS) # Play the best fitness agent
-    print(len(WINNER_LIST))
-    testAgent.playAllAgents(WINNER_LIST, config, GAME_TO_TEST, MAX_STEPS) # Play the best fitness agent from each iteration
+        print('\nBest genome:\n{!s}'.format(winner))
 
+        # Save winner
+        with open(path + game + '-Winner', 'wb') as f:
+            pickle.dump(winner, f)
+
+    #    testAgent.playAgent(winner, config, GAME_TO_TEST, MAX_STEPS) # Play the best fitness agent
+        print(len(WINNER_LIST))
+        testAgent.playAllAgents(WINNER_LIST, config, game, MAX_STEPS) # Play the best fitness agent from each iteration
+    elif(choice == 2):
+        epsilon = .95
+        learning_rate = 1
+        if(game == GAME_TO_TEST1):
+            cartPoleQLearn = qm.qarray([0,1], 2, None, None)
+            cartPoleLog = dl.data()
+            epochs = int(input("How many epochs would you like to train for?\n"))
+            ## <-- cart pole training -->
+            testAgent.trainQMatrix(cartPoleQLearn, epochs, epsilon, learning_rate, cartPoleLog, False, game)
+            cartPoleQLearn.printStatesEncountered()
+            testAgent.trainQMatrix(cartPoleQLearn, 50, 0, None, cartPoleLog, True, game)
+        elif(game == GAME_TO_TEST2):
+            MountainCarQLearn = qm.qarray([0,1,2], 3, None, None)
+            MountainCarLog = dl.data()
+            epochs = int(input("How many epochs would you like to train for?\n"))
+            ## <-- Mountain Car training -->
+            testAgent.trainQMatrix(MountainCarQLearn, epochs, epsilon, learning_rate, MountainCarLog, False, game)
+            MountainCarQLearn.printStatesEncountered()
+            testAgent.trainQMatrix(MountainCarQLearn, 50, 0, None, MountainCarLog, True, game)
+    else:
+        print("Bad input. Sorry, please try again.")
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
